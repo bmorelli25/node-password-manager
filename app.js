@@ -1,5 +1,6 @@
 console.log('Starting Password Manager...');
 
+var crypto = require('crypto-js');
 var storage = require('node-persist');
 storage.initSync();
 
@@ -23,6 +24,12 @@ var argv = require('yargs')
         alias: 'p',
         description: 'Account Password',
         type: 'string'
+      },
+      masterPassword: {
+        demand: true,
+        alias: 'm',
+        description: 'Master Password',
+        type: 'string'
       }
     }).help('help');
   })
@@ -33,6 +40,12 @@ var argv = require('yargs')
         alias: 'n',
         description: 'Account Name',
         type: 'string'
+      },
+      masterPassword: {
+        demand: true,
+        alias: 'm',
+        description: 'Master Password',
+        type: 'string'
       }
     }).help('help');
   })
@@ -40,18 +53,45 @@ var argv = require('yargs')
   .argv;
 
 var command = argv._[0];
+var masterPassword = argv.masterPassword;
 
-function createAccount (account) {
-  var accounts = storage.getItemSync('accounts') || []; // default []
+function getAccounts (masterPassword) {
+  // use getItemSync to fetch accounts
+  var encryptedAccounts = storage.getItemSync('accounts');
+  var accounts = []; //set accounts default
 
+  // decrypt
+  if (typeof encryptedAccounts !== 'undefined') {
+    var bytes = crypto.AES.decrypt(encryptedAccounts, masterPassword);
+    var accounts = JSON.parse(bytes.toString(crypto.enc.Utf8));
+  }
+
+  // return accounts array
+  return accounts
+};
+
+function saveAccounts (accounts, masterPassword) {
+  // encrypt accounts
+  var encryptedAccounts = crypto.AES.encrypt(JSON.stringify(accounts), masterPassword);
+
+  // Save it to local storage
+  storage.setItemSync('accounts', encryptedAccounts.toString());
+
+  //return accounts
+  return accounts;
+};
+
+function createAccount (account, masterPassword) {
+  var accounts = getAccounts(masterPassword);
   accounts.push(account);
-  storage.setItemSync('accounts', accounts);
+
+  saveAccounts(accounts, masterPassword);
 
   return account;
 };
 
-function getAccount (accountName) {
-  var accounts = storage.getItemSync('accounts');
+function getAccount (accountName, masterPassword) {
+  var accounts = getAccounts(masterPassword);
   var matchedAccount;
 
   accounts.forEach(function (account) {
@@ -68,11 +108,11 @@ if (command === 'create') {
     name: argv.name,
     username: argv.username,
     password: argv.password
-  });
+  }, masterPassword);
   console.log('Account created!');
   console.log(createdAccount);
 } else if (command === 'get') {
-  var fetchedAccount = getAccount(argv.name);
+  var fetchedAccount = getAccount(argv.name, masterPassword);
 
   if (typeof fetchedAccount === 'undefined') {
     console.log('Account not found');
