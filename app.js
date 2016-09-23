@@ -1,8 +1,8 @@
-console.log('Starting Password Manager...');
-
 var crypto = require('crypto-js');
 var storage = require('node-persist');
 storage.initSync();
+
+console.log('Starting Password Manager...');
 
 var argv = require('yargs')
   .command('create', 'Create an account username and password', function (yargs) {
@@ -82,12 +82,21 @@ function saveAccounts (accounts, masterPassword) {
 };
 
 function createAccount (account, masterPassword) {
-  var accounts = getAccounts(masterPassword);
-  accounts.push(account);
+  var accounts = getAccounts(masterPassword); //get the accounts array
 
-  saveAccounts(accounts, masterPassword);
+  accounts.forEach(function (storedAccount) {
+    if (account.name === storedAccount.name) {
+      storedAccount.username = account.username;
+      storedAccount.Password = account.password;
+      console.log('Account already exists. Updating Stored Username & Password');
+      saveAccounts(accounts, masterPassword); //encrypt then save the new array
+      return account; //return the new account to show success
+    };
+  });
 
-  return account;
+  accounts.push(account); //add the new account to the array
+  saveAccounts(accounts, masterPassword); //encrypt then save the new array
+  return account; //return the new account to show success
 };
 
 function getAccount (accountName, masterPassword) {
@@ -110,6 +119,7 @@ if (command === 'create') {
       username: argv.username,
       password: argv.password
     }, masterPassword);
+
     console.log('Account created!');
     console.log(createdAccount);
   } catch (e) {
