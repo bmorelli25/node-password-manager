@@ -41,18 +41,6 @@ var argv = require('yargs')
 
 var command = argv._[0];
 
-if (command === 'create') {
-  createAccount({
-    name: argv.name,
-    username: argv.username,
-    password: argv.password
-  });
-};
-
-if (command === 'get') {
-  getAccount(argv.name);
-};
-
 function createAccount (account) {
   var accounts = storage.getItemSync('accounts') || []; // default []
 
@@ -71,16 +59,25 @@ function getAccount (accountName) {
       matchedAccount = account;
     };
   });
-  console.log(matchedAccount);
+
   return matchedAccount;
 };
 
-// //TEST IT OUT
-// createAccount({
-//   name: 'Facebook',
-//   username: 'User123',
-//   password: 'pass123'
-// });
-//
-// var facebookAcct = getAccount('Facebook');
-// console.log(facebookAcct);
+if (command === 'create') {
+  var createdAccount = createAccount({
+    name: argv.name,
+    username: argv.username,
+    password: argv.password
+  });
+  console.log('Account created!');
+  console.log(createdAccount);
+} else if (command === 'get') {
+  var fetchedAccount = getAccount(argv.name);
+
+  if (typeof fetchedAccount === 'undefined') {
+    console.log('Account not found');
+  } else {
+    console.log('Account found!');
+    console.log(fetchedAccount);
+  };
+};
