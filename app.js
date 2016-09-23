@@ -3,9 +3,55 @@ console.log('Starting Password Manager...');
 var storage = require('node-persist');
 storage.initSync();
 
-//account.name Facebook
-//account.username User123
-//account.password pass123
+var argv = require('yargs')
+  .command('create', 'Create an account username and password', function (yargs) {
+    yargs.options({
+      name: {
+        demand: true,
+        alias: 'n',
+        description: 'Account Name',
+        type: 'string'
+      },
+      username: {
+        demand: true,
+        alias: 'u',
+        description: 'Account Username',
+        type: 'string'
+      },
+      password: {
+        demand: true,
+        alias: 'p',
+        description: 'Account Password',
+        type: 'string'
+      }
+    }).help('help');
+  })
+  .command('get', 'Get an accound username and password', function (yargs) {
+    yargs.options({
+      name: {
+        demand: true,
+        alias: 'n',
+        description: 'Account Name',
+        type: 'string'
+      }
+    }).help('help');
+  })
+  .help('help')
+  .argv;
+
+var command = argv._[0];
+
+if (command === 'create') {
+  createAccount({
+    name: argv.name,
+    username: argv.username,
+    password: argv.password
+  });
+};
+
+if (command === 'get') {
+  getAccount(argv.name);
+};
 
 function createAccount (account) {
   var accounts = storage.getItemSync('accounts') || []; // default []
@@ -25,7 +71,7 @@ function getAccount (accountName) {
       matchedAccount = account;
     };
   });
-
+  console.log(matchedAccount);
   return matchedAccount;
 };
 
