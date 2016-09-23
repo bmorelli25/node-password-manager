@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/bmorelli25/node-password-manager#readme",
   "dependencies": {
-    "node-persist": "0.0.6"
+    "node-persist": "0.0.6",
+    "yargs": "^3.15.0"
   }
 }
