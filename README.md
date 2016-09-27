@@ -11,7 +11,7 @@ Very simple node js application that manages passwords locally. This application
 
 -----
 
-How to run:
+How to use:
 
 1.  ```npm install```
 2.  Add an account by running: ```npm start -- create```
